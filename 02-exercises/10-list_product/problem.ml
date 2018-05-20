@@ -3,8 +3,10 @@ open! Base
 (* Now let's write a function to multiply the elements of a list. *)
 let rec product xs =
   match xs with
-  | [] -> failwith "For you to implement"
-  | _for_you_to_implement -> failwith "For you to implement"
+  | [] ->
+      1
+  | h :: t ->
+      h * product t
 
 let%test "Testing product..." =
   Int.equal 1 (product [])

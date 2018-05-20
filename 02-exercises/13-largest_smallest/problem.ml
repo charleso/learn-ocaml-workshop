@@ -16,11 +16,13 @@ let rec largest xs =
 let rec smallest xs =
   match xs with
   | [] -> Float.infinity
-  | x :: ys -> min x (smallest ys)
+  | x :: ys -> Float.min x (smallest ys)
 
 (* Let's rewrite them using every: *)
-let simpler_largest  xs = every (failwith "For you to implement") xs
-let simpler_smallest xs = every (failwith "For you to implement") xs
+let simpler_largest  xs =
+  every Float.neg_infinity Float.max xs
+let simpler_smallest xs =
+  every Float.infinity Float.min xs
 
 let%test "Testing simpler_smallest..." =
   Float.(=) Float.infinity (simpler_smallest [])

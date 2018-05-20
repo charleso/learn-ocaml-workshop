@@ -5,6 +5,6 @@
 open Base
 open Stdio
 
-let () = printf "Hello, World!
+let () = printf "Hello, World!'
 
 let%test "1+1 is 2" = 1 + 1 = 3
