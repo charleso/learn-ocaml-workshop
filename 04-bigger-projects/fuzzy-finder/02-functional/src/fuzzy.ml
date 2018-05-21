@@ -27,16 +27,19 @@ module Model = struct
     let line = Widget.of_string (Int.to_string (Map.length t.lines)) in
     let re = Re.compile (Re.str t.filter) in
     (* let () = Stdio.print_endline (Int.to_string t.dim.height) in *)
+    let highlight rest = "\x1b[32m" ^ rest ^ "\x1b[0m" in
     let wlines =
-      Widget.vbox (
-           (Map.range_to_alist ~min:0 ~max:(Map.length t.lines) t.lines)
-        |> List.map ~f:snd
-        |> List.filter ~f:(Re.execp re)
-        |> fun l -> List.take l (t.dim.height - 2)
-        |> fun l -> List.append l (List.init (t.dim.height - 2 - List.length l) ~f:(fun _ -> ""))
-        |> List.rev
-        |> List.map ~f:Widget.of_string
-      ) in
+         (Map.range_to_alist ~min:0 ~max:(Map.length t.lines) t.lines)
+      |> List.map ~f:snd
+      |> List.filter ~f:(Re.execp re)
+      |> List.map ~f:(String.substr_replace_all ~pattern:t.filter ~with_:(highlight t.filter))
+      |> fun l -> List.take l (t.dim.height - 2)
+      |> fun l -> List.append l
+        (List.init (t.dim.height - 2 - List.length l) ~f:(Fn.const ""))
+      |> List.rev
+      |> List.map ~f:Widget.of_string
+      |> Widget.vbox
+      in
     let widget = Widget.hbox [ elapsed; line ] in
     let wfilter = Widget.of_string ("> " ^ t.filter) in
     (Widget.vbox [wlines; widget; wfilter], selected)
