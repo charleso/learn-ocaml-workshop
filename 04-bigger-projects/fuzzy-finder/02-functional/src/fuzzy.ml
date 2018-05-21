@@ -24,6 +24,7 @@ module Model = struct
     let line = Widget.of_string (Int.to_string (Map.length t.lines)) in
     let re = Re.compile (Re.str t.filter) in
     (* let () = Stdio.print_endline (Int.to_string t.dim.height) in *)
+    let highlight2 rest = "\x1b[31m" ^ rest ^ "\x1b[0m" in
     let highlight rest = "\x1b[32m" ^ rest ^ "\x1b[0m" in
     let flines =
          (Map.range_to_alist ~min:0 ~max:(Map.length t.lines) t.lines) |> List.map ~f:snd
@@ -33,7 +34,7 @@ module Model = struct
     let wlines =
          List.take flines (t.dim.height - 2)
       |> List.map ~f:(String.substr_replace_all ~pattern:t.filter ~with_:(highlight t.filter))
-      |> List.mapi ~f:(fun i x -> if i = t.selected then "> " ^ x else "  " ^ x)
+      |> List.mapi ~f:(fun i x -> if i = t.selected then highlight2 ">" ^ " " ^ x else "  " ^ x)
       |> fun l ->
         List.append l
           (List.init (t.dim.height - 2 - List.length l) ~f:(Fn.const ""))
