@@ -6,11 +6,15 @@ module Model = struct
   type t =
     { lines: string Map.M(Int).t
     ; start: Time.t
+    ; filter: string
+    ; dim: Tty_text.Dimensions.t
     }
 
   let create ~now =
     { lines = Map.empty (module Int)
     ; start = now
+    ; filter = ""
+    ; dim = { width = 0; height = 0 }
     }
 
   let widget_and_selected t ~now =
@@ -21,8 +25,21 @@ module Model = struct
     in
     let elapsed = Widget.of_string (Time.Span.to_string (Time.diff now t.start)) in
     let line = Widget.of_string (Int.to_string (Map.length t.lines)) in
+    let re = Re.compile (Re.str t.filter) in
+    (* let () = Stdio.print_endline (Int.to_string t.dim.height) in *)
+    let wlines =
+      Widget.vbox (
+           (Map.range_to_alist ~min:0 ~max:(Map.length t.lines) t.lines)
+        |> List.map ~f:snd
+        |> List.filter ~f:(Re.execp re)
+        |> fun l -> List.take l (t.dim.height - 2)
+        |> fun l -> List.append l (List.init (t.dim.height - 2 - List.length l) ~f:(fun _ -> ""))
+        |> List.rev
+        |> List.map ~f:Widget.of_string
+      ) in
     let widget = Widget.hbox [ elapsed; line ] in
-    (widget, selected)
+    let wfilter = Widget.of_string ("> " ^ t.filter) in
+    (Widget.vbox [wlines; widget; wfilter], selected)
 end
 
 module Action = struct
@@ -32,12 +49,11 @@ module Action = struct
 end
 
 let handle_user_input (m:Model.t) (input:Tty_text.User_input.t) =
-  let action =
-    match input with
-    | Ctrl_c -> Some Action.Exit
-    | _ -> None
-  in
-  (m,action)
+  match input with
+  | Ctrl_c -> (m, Some Action.Exit)
+  | Char c -> ({ m with filter = m.filter ^ Char.to_string c }, None)
+  | Backspace -> ({ m with filter = String.drop_suffix m.filter 1 }, None)
+  | _ -> (m, None)
 
 let handle_line (m:Model.t) line : Model.t =
   let lnum =
@@ -50,5 +66,5 @@ let handle_line (m:Model.t) line : Model.t =
 let handle_closed (m:Model.t) _ =
   m
 
-let set_dim (m:Model.t) _ =
-  m
+let set_dim (m:Model.t) dim =
+  { m with dim = dim }
