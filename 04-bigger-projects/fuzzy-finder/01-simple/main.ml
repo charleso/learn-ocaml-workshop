@@ -1,18 +1,27 @@
 open! Core
 open! Async
 
-let run _filter =
-  Pipe.iter (Reader.lines (force Reader.stdin)) ~f:(fun line ->
-      (* EXERCISE: Filter down to the matching lines.
+let run filter =
+  let
+    re = Re.compile (Re.str filter)
+  in
+    Pipe.iter (Reader.lines (force Reader.stdin)) ~f:(fun line ->
+        (* EXERCISE: Filter down to the matching lines.
 
-         You can use Re for the pattern matching. Check out the functions:
+           You can use Re for the pattern matching. Check out the functions:
 
-         - Re.str
-         - Re.compile
-         - Re.execp
-      *)
-      print_endline line;
-      Writer.flushed (force Writer.stdout))
+           - Re.str
+           - Re.compile
+           - Re.execp
+        *)
+
+        if Re.execp ~pos:0 ~len:(-1) re line then
+          print_endline line
+        else
+          ();
+        (* Manually flush inline *)
+        (* Writer.flushed (force Writer.stdout) *)
+        Deferred.unit)
 
 let command =
   let open Command.Let_syntax in
