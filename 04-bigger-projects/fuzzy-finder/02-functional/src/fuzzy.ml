@@ -27,7 +27,7 @@ module Model = struct
     let highlight2 rest = "\x1b[31m" ^ rest ^ "\x1b[0m" in
     let highlight rest = "\x1b[32m" ^ rest ^ "\x1b[0m" in
     let flines =
-         (Map.range_to_alist ~min:0 ~max:(Map.length t.lines) t.lines) |> List.map ~f:snd
+         Map.data t.lines
       |> List.filter ~f:(Re.execp re)
       in
     let selected = List.nth flines t.selected in
